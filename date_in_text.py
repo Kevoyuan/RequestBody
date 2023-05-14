@@ -11,8 +11,8 @@ def date_in_text(text):
     # Initialize datetime_obj to None
     datetime_obj = None
     datetime_objs = datefinder.find_dates(text)
-    for datetime_obj in datetime_objs:
-        print(datetime_obj)
+    for d_obj in datetime_objs:
+        datetime_obj = d_obj
 
     # If no date was found, return None
     if datetime_obj is None:
