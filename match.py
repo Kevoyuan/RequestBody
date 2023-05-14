@@ -4,6 +4,10 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import re
 
+import nltk 
+from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
 
 def match_model_in_text(text, dictionary):
 
@@ -26,100 +30,45 @@ def match_model_in_text(text, dictionary):
     return matched_models   
 
 
-# def match_confs_in_text(text, dictionary):
-#     # Convert text to lowercase
-#     text = text.lower()
-
-#     # Sort keys from longest to shortest
-#     sorted_keys = sorted(dictionary.keys(), key=len, reverse=True)
-
-#     # Create a dictionary to hold matches
-#     matches = {}
-#     matched_confs = []
-    
-#     # Check if any key is in the text
-#     for key in sorted_keys:
-#         lower_key = key.lower()
-        
-#         lower_keys = lower_key.split()
-#         # Generate all permutations of the words
-#         lower_key_permutations = [' '.join(perm) for perm in permutations(lower_keys)]
-        
-
-#         # Check if any of these permutations are in the text
-#         if any(perm.lower() in text for perm in lower_key_permutations):
-        
-#             # matches[key] = dictionary[key]
-#             text = text.replace(lower_key, '')    
-
-#             matched_confs.append(dictionary[key])
-            
-#             # match_or = re.search(r'or|one of', text, re.IGNORECASE)    
-#             # if match_or:
-#             #     # replace only the first occurrence
-#             #     text = text.replace(match_or.group(), '',1)  
-#             #     matched_confs.append('/')
-        
-#     print(text)
-#     # return matches.values()
-#     return matched_confs
-
-# def match_confs_in_text(text, dictionary):
-#     # Convert text to lowercase
-#     text = text.lower()
-
-#     # Sort keys from longest to shortest
-#     sorted_keys = sorted(dictionary.keys(), key=len, reverse=True)
-
-#     # Create a list to hold matches
-#     matched_confs = []
-
-#     # Check if any key is in the text
-#     for key in sorted_keys:
-#         lower_key = key.lower()
-        
-#         lower_keys = lower_key.split()
-#         # Generate all permutations of the words
-#         lower_key_permutations = [' '.join(perm) for perm in permutations(lower_keys)]
-        
-#         # Check if any of these permutations are in the text
-#         for perm in lower_key_permutations:
-#             if perm.lower() in text:
-#                 text = text.replace(perm.lower(), '')
-#                 matched_confs.append(dictionary[key])
-#                 break  # Once a match is found, break the loop to avoid replacing other occurrences
-
-#     # Insert '/' between found key codes
-#     result = []
-#     Or = ['or', 'one of']
-#     And = ['and']
-#     AndNot = ['except']
-#     OrNot = ['or']
-#     for i in range(len(matched_confs)):
-#         result.append(matched_confs[i])
-#         if i != len(matched_confs) - 1 and any(op in text for op in Or):  # Only add '/' if any operator is in the remaining text
-#             result.append('/')
-#             for op in Or:
-#                 if op in text:
-#                     text = text.replace(op, '', 1)  # Remove one occurrence of operator from the text
-#                     break
-            
-#     print(text)
-#     return result
 
 def match_confs_in_text(text, dictionary):
-    # Convert text to lowercase
-    text = text.lower()
+   
+    
+    stemmer = PorterStemmer()
 
+    # Create a new dictionary to hold the stemmed keys and values
+    stemmed_dict = {}
+
+    # Iterate over the items in the dictionary
+    for key, value in dictionary.items():
+        # Tokenize and stem the key
+        words_in_key = nltk.word_tokenize(key.lower())
+        stemmed_key = ' '.join(stemmer.stem(word) for word in words_in_key)
+
+        # Tokenize and stem the value if it's a string
+        if isinstance(value, str):
+            words_in_value = nltk.word_tokenize(value)
+            stemmed_value = ' '.join(stemmer.stem(word) for word in words_in_value)
+        else:
+            stemmed_value = value
+
+        # Add the stemmed key-value pair to the stemmed dictionary
+        stemmed_dict[stemmed_key] = stemmed_value
+    print(f'stemmed_dict: {stemmed_dict}')
     # Sort keys from longest to shortest
-    sorted_keys = sorted(dictionary.keys(), key=len, reverse=True)
+    
+    sorted_keys = sorted(stemmed_dict.keys(), key=len, reverse=True)
 
     # Create a list to hold matches
     matched_confs = []
-
-    # Define operators
-    # operators = ['or', 'one of']
-
+    
+    # Insert '/' between found key codes
+    result = []
+    Or = [r'\bor\b', 'one of']
+    And = ['and']
+    AndNot = ['except']
+    OrNot = [r'\bwithout\b']
+    
     # Check if any key is in the text
     for key in sorted_keys:
         lower_key = key.lower()
@@ -127,60 +76,61 @@ def match_confs_in_text(text, dictionary):
         lower_keys = lower_key.split()
         # Generate all permutations of the words
         lower_key_permutations = [' '.join(perm) for perm in permutations(lower_keys)]
+        # print(lower_key_permutations)
         
+
         # Check if any of these permutations are in the text
         for perm in lower_key_permutations:
             if perm.lower() in text:
+                perm_start_index = text.find(perm.lower())
+                without_start_index = text.find('without')
+                # Only consider 'without' if it's within a close range of the key
+                if without_start_index != -1 and 0 <= perm_start_index - without_start_index <= 15:
+                    text = text.replace('without', '', 1)
+                    matched_confs.append('-' + stemmed_dict[key])
+                else:
+                    matched_confs.append(stemmed_dict[key])
                 text = text.replace(perm.lower(), '')
-                matched_confs.append(dictionary[key])
-                break  # Once a match is found, break the loop to avoid replacing other occurrences
+            
 
-    result = []
+    for i in range(len(matched_confs)):
+        result.append(matched_confs[i])
+    # print(f'\nresult: {len(result)}')
     
-    # Insert '/-' between found key codes if 'or ... without' pattern is present
-    OrNot_pattern = r'\bor .*? without\b'
-    OrNot_match = re.search(OrNot_pattern, text)
-    OrNot_operator = '/-'
-    
-    Or_pattern = r'\bor\b'
-    Or_match = re.search(Or_pattern, text)
-    Or_operator = '/'
-    
-    Not_pattern = r'\bwithout\b'
-    Not_match = re.search(Not_pattern, text)
-    Not_operator = '-'
-    
-    And_operator = '+'
-    
-    if OrNot_match:
+    # Adding Or operator if one configuration has 2 option from customer
+    if len(result) == 2:
+        result.insert(1, '/')
         
-        result.append('+' + OrNot_operator.join(matched_confs))
-    elif Or_match:
-        
-        result.append('+' + Or_operator.join(matched_confs))
-    elif Not_match:
-        
-        result.append('+' + Not_operator.join(matched_confs))
-    else:
-        
-        result.append('+' + And_operator.join(matched_confs))    
+    # Check if '/' is in the list
+    if '/' in result:
+        # Add '(' at the start
+        result.insert(0, '(')
 
-
+        # Add ')' at the end
+        result.append(')')
+    if result and result[0][0].isalpha():
+        result.insert(0, '+')
+    
+    
+        # print("The list is not None")
+    # print(text)
     return result
+
+
 
 def date_in_text(text):
     # Clean the text
     # Trim leading and trailing whitespaces
-    date_text = text.strip()
+    # date_text = text.strip()
 
-    # Remove multiple whitespaces
-    date_text  = re.sub(r'\s+', ' ', date_text )
+    # # Remove multiple whitespaces
+    # date_text  = re.sub(r'\s+', ' ', date_text )
 
-    # Remove symbols 
-    date_text = re.sub(r'\W+', ' ', date_text)
+    # # Remove symbols 
+    # date_text = re.sub(r'\W+', ' ', date_text)
 
     # Parse the date from the text
-    datetime_obj = parse(date_text , fuzzy=True, dayfirst=True)
+    datetime_obj = parse(text , fuzzy=True, dayfirst=True)
 
 
     # Get the date part only
@@ -214,7 +164,30 @@ def date_in_text(text):
     return formatted_date
 
 
-text = "I am planning to order the IX with a sunroof or panorama glass roof sky lounge, and the EU Comfort Package or M Sport Package on 12th April 2018. Is this configuration possible?"
+def stem_text(text):
+    stemmer = PorterStemmer()
+
+    # Tokenize the sentence
+    words = nltk.word_tokenize(text.lower())
+
+    # Stem each word
+    stemmed_words = [stemmer.stem(word) for word in words]
+
+    # Join the stemmed words back into a sentence
+    stemmed_text = ' '.join(stemmed_words)
+
+    return stemmed_text
+
+text = "Hello, is the X7 xDrive40i available without a panorama glass roof and with the EU Comfort Package. I need the vehicle on the 8th of November 2024."
+# text = 'I want to order a BMW iX with right-hand drive configuration. I will be ordering it at the start of October 2022.'
+# text = 'I am planning to order the BMW M8 with a sunroof or panorama glass roof sky lounge, and the M Sport Package or M Sport pro Package on 13th April 2018. Is this configuration possible?'
+# text = 'valid for all panoramic roofs or iX xDrive50 with sunroof'
+
+
+stemmed_text = stem_text(text)
+
+print(stemmed_text)
+
 
 SteeringWheel_mapping = {
     'Left-Hand': 'LL',
@@ -222,9 +195,9 @@ SteeringWheel_mapping = {
 }
 
 AvailablePackages_mapping = {
-    'M Sport': 'P337A',
-    'M Sport Pro': 'P33BA',
-    'Comfort EU': 'P7LGA',
+    'M Sport Package': 'P337A',
+    'M Sport Pro Package': 'P33BA',
+    'Comfort EU Package': 'P7LGA',
 }
 
 Roof_mapping = {
@@ -244,19 +217,30 @@ Model_mapping = {
 
 # Model Type
 modelTypeCodes = match_model_in_text(text, Model_mapping)
-print(modelTypeCodes)
+print(f'modelTypeCodes: {modelTypeCodes}')
 
 # Configuration
-Roof_matches_code = match_confs_in_text(text, Roof_mapping)
-AvailablePackages_matches_code = match_confs_in_text(text, AvailablePackages_mapping)
-SteeringWheel_matches_code = match_confs_in_text(text, SteeringWheel_mapping)
-# conf_list = Roof_matches_code + AvailablePackages_matches_code + SteeringWheel_matches_code
 
-print(f'Roof_matches_code: {Roof_matches_code}')  
-print(f'AvailablePackages_matches_code: {AvailablePackages_matches_code}')  
-print(SteeringWheel_matches_code)  
+  
+  
+
+
+Roof_matches_code = match_confs_in_text(stemmed_text, Roof_mapping)
+
+AvailablePackages_matches_code = match_confs_in_text(stemmed_text, AvailablePackages_mapping)
+
+SteeringWheel_matches_code = match_confs_in_text(stemmed_text, SteeringWheel_mapping)
+
+conf_list = Roof_matches_code + AvailablePackages_matches_code + SteeringWheel_matches_code
+
+# print(f'Roof_matches_code: {Roof_matches_code}')  
+# print(f'AvailablePackages_matches_code: {AvailablePackages_matches_code}')  
+# print(f'SteeringWheel_matches_code: {SteeringWheel_matches_code}')  
 # print(conf_list)
+conf_string = ''.join(conf_list)
+print(conf_string)
+
 
 # Dates
-date = date_in_text(text)
-print(date)  
+date_string = date_in_text(stemmed_text)
+print(date_string)  
