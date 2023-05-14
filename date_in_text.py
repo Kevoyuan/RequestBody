@@ -7,20 +7,17 @@ import datefinder
 
 def date_in_text(text):
 
-    # # Parse the date from the text
-    # datetime_obj = parse(text , fuzzy=True, dayfirst=True)
+    # Parse the date from the text
+    # Initialize datetime_obj to None
+    datetime_obj = None
     datetime_objs = datefinder.find_dates(text)
     for datetime_obj in datetime_objs:
         print(datetime_obj)
-    # datetime_obj = parse(text , fuzzy=True)
+
+    # If no date was found, return None
+    if datetime_obj is None:
+        return None
     
-    # Try to parse the date from the text
-    # try:
-    #     datetime_obj, tokens = parse(text, fuzzy_with_tokens=True)
-    # except ParserError:
-    #     return None
-
-
     # Get the date part only
     day = datetime_obj.day
     month = datetime_obj.month
@@ -51,8 +48,10 @@ def date_in_text(text):
         
     return formatted_date
 
-# def date_in_text(text):
-#     matches = datefinder.find_dates(text)
-#     for match in matches:
-#         print(match)
-#         return match.strftime('%Y-%m-%d')
+def request_date_if_not_in_text(text):
+    # Try to extract a date from the text
+    extracted_date = date_in_text(text)
+    if extracted_date is None:
+        # If no date was found in the text, ask the user for one
+        extracted_date = input("Please enter a date (YYYY-MM-DD): ")
+    return extracted_date
