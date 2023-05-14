@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 
 from stem_text import stem_text
-from date_in_text import date_in_text
+from date_in_text import date_in_text, request_date_if_not_in_text
 from match_model_in_text import match_model_in_text
 from match_confs_in_text import match_confs_in_text
 from request_body import create_request_body
@@ -79,8 +79,8 @@ print([conf_string])
 
 
 # Dates
-date_string = date_in_text(text)
-print([date_string])  
+date_string = request_date_if_not_in_text(text)
+print([date_string]) 
 
 # Test the function
 modelTypeCodes = modelTypeCodes
