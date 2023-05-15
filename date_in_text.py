@@ -49,9 +49,11 @@ def date_in_text(text):
     return formatted_date
 
 def request_date_if_not_in_text(text):
+    format_string = '%Y-%m-%d'
     # Try to extract a date from the text
     extracted_date = date_in_text(text)
     if extracted_date is None:
         # If no date was found in the text, ask the user for one
         extracted_date = input("Please enter a date (YYYY-MM-DD): ")
+        extracted_date = parse(extracted_date).strftime(format_string)
     return extracted_date
