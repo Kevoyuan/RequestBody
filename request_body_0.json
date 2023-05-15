@@ -1,1 +1,1 @@
-{"modelTypeCodes": ["21EM"], "booleanFormulas": ["-S402A+P7LGA"], "dates": ["2024-11-08"]}
+{"modelTypeCodes": ["21EM"], "booleanFormulas": ["+(S402A/S402AS402A)+(P337A/P7LGAP7LGA)"], "dates": ["2024-11-08"]}
