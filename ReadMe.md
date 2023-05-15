@@ -16,7 +16,7 @@ pip install match_model_in_text
 pip install match_confs_in_text
 pip install request_body
 pip install mapping
-```python
+```
 
 ## Function Overview
 The main function main() uses several sub-functions to process the text:
@@ -45,6 +45,6 @@ def main(text):
 text = 'Hello, is the X7 xDrive40i available without a panorama glass roof and with the EU Comfort Package. I need the vehicle on the 8th of November 2024.'
 result = main(text)
 print(result)
-```python
+```
 
 In this example, the main() function will process the text and extract the car model, configuration, and date information from it. The result will be printed to the console.
