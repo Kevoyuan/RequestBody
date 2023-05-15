@@ -54,4 +54,4 @@ print(result) # output: {'modelTypeCodes': ['21EM'], 'booleanFormulas': ['-S402A
     }
 ```
 
-In this example, the main() function will process the text and extract the car model, configuration, and date information from it. The result will be printed to the console.
+In this example, the `main()` function will process the text and extract the car model, configuration, and date information from it. The result will be printed to the console.
