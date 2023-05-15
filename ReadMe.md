@@ -46,7 +46,7 @@ text = 'Hello, is the X7 xDrive40i available without a panorama glass roof and w
 result = main(text)
 print(result) # output: {'modelTypeCodes': ['21EM'], 'booleanFormulas': ['-S402A+P7LGA'], 'dates': ['2024-11-08']}
 ```
-```json
+```JSON
 {
     'modelTypeCodes': ['21EM'], 
     'booleanFormulas': ['-S402A+P7LGA'], 
