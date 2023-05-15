@@ -81,27 +81,24 @@ def match_confs_in_text(text, dictionary):
     return result
 
 def stem_dictionary(dictionary):
+    # This function takes a dictionary of keys and values, and returns a new dictionary where all the keys and values have been stemmed. 
     stemmer = PorterStemmer()
-
     stemmed_dict = {}
 
-    # Iterate over the items in the original dictionary.
     for key, value in dictionary.items():
-        # Tokenize the key into individual words and convert it to lowercase.
         words_in_key = nltk.word_tokenize(key.lower())
-        
-        # Stem each word in the key and join them back together into a single string.
         stemmed_key = ' '.join(stemmer.stem(word) for word in words_in_key)
-
-        # If the value is a string, tokenize and stem it just like the key.
-        if isinstance(value, str):
-            words_in_value = nltk.word_tokenize(value)
-            stemmed_value = ' '.join(stemmer.stem(word) for word in words_in_value)
-        else:
-            # If the value is not a string, don't try to stem it.
-            stemmed_value = value
-
+        stemmed_value = stem_value(value)
         stemmed_dict[stemmed_key] = stemmed_value
-    
     return stemmed_dict
+
+def stem_value(value):
+    # This function stems a value if it's a string.
+    stemmer = PorterStemmer()
+    if isinstance(value, str):
+        words_in_value = nltk.word_tokenize(value)
+        stemmed_value = ' '.join(stemmer.stem(word) for word in words_in_value)
+    else:
+        stemmed_value = value
+    return stemmed_value
 
