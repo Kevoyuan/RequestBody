@@ -14,4 +14,5 @@ def create_request_bodies(modelTypeCodes, booleanFormulas, dates):
         with open(f'request_body_{i}.json', 'w') as file:
             json.dump(request_body, file)
 
+        print(request_body)
     return "Request bodies saved as JSON files."
